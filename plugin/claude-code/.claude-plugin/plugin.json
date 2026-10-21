@@ -8,5 +8,9 @@
   },
   "repository": "https://github.com/radical-studios/witness",
   "license": "Apache-2.0",
+  "icon": "./.claude-plugin/icon.png",
+  "documentationUrl": "https://github.com/radical-studios/witness#readme",
+  "supportUrl": "https://github.com/radical-studios/witness/issues",
+  "privacyPolicyUrl": "https://github.com/radical-studios/witness/blob/main/docs/PRIVACY.md",
   "keywords": ["code-review", "verification", "provenance"]
 }

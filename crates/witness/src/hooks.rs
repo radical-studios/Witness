@@ -320,6 +320,11 @@ fn powershell_command(agent: &str, event: &str) -> String {
 }
 
 fn add_entries(config: &mut Value, hooks: &AgentHooks) {
+    add_entries_with(config, hooks, sh_command);
+}
+
+/// `add_entries` with another POSIX shell command for each `(agent, event)`.
+fn add_entries_with(config: &mut Value, hooks: &AgentHooks, shell: fn(&str, &str) -> String) {
     if !config.is_object() {
         *config = json!({});
     }
@@ -343,7 +348,7 @@ fn add_entries(config: &mut Value, hooks: &AgentHooks) {
             Format::Grouped { timeout } => {
                 let mut command = json!({
                     "type": "command",
-                    "command": sh_command(hooks.agent, event),
+                    "command": shell(hooks.agent, event),
                 });
                 // The end-of-turn hook computes a report; give it longer.
                 let timeout = timeout.map(|t| if *event == "stop" { 30 } else { t });
@@ -358,11 +363,11 @@ fn add_entries(config: &mut Value, hooks: &AgentHooks) {
             }
             Format::Copilot => json!({
                 "type": "command",
-                "bash": sh_command(hooks.agent, event),
+                "bash": shell(hooks.agent, event),
                 "powershell": powershell_command(hooks.agent, event),
                 "timeoutSec": if *event == "agent-stop" { 30 } else { 10 },
             }),
-            Format::Cursor => json!({ "command": sh_command(hooks.agent, event) }),
+            Format::Cursor => json!({ "command": shell(hooks.agent, event) }),
         };
         let list = events
             .entry((*key).to_owned())
@@ -538,16 +543,65 @@ mod tests {
         assert_eq!(plugin["version"], env!("CARGO_PKG_VERSION"));
     }
 
+    /// The plugin hooks the same events, with the same matchers and timeouts,
+    /// but runs `hooks/witness.sh`: Anthropic's plugin directory refuses hook
+    /// commands with variables or command substitutions in them.
     #[test]
     fn plugin_hooks_match_the_installer() {
         let path =
             Path::new(env!("CARGO_MANIFEST_DIR")).join("../../plugin/claude-code/hooks/hooks.json");
         let plugin: Value = serde_json::from_str(&fs::read_to_string(path).unwrap()).unwrap();
         let mut ours = json!({});
-        add_entries(&mut ours, agent("claude-code"));
+        add_entries_with(&mut ours, agent("claude-code"), |_, event| {
+            format!(r#"sh "${{CLAUDE_PLUGIN_ROOT}}/hooks/witness.sh" {event}"#)
+        });
         assert_eq!(
             plugin, ours,
             "regenerate plugin/claude-code/hooks/hooks.json"
+        );
+    }
+
+    /// `hooks/witness.sh` does what `sh_command` does for Claude Code.
+    #[cfg(unix)]
+    #[test]
+    fn plugin_hook_script_runs_witness_and_never_fails() {
+        use std::os::unix::fs::PermissionsExt;
+        let script =
+            Path::new(env!("CARGO_MANIFEST_DIR")).join("../../plugin/claude-code/hooks/witness.sh");
+        let home = tempfile::tempdir().unwrap();
+        let repo = tempfile::tempdir().unwrap();
+        fs::create_dir(repo.path().join(".witness")).unwrap();
+        let run = |event: &str| {
+            std::process::Command::new("sh")
+                .arg(&script)
+                .arg(event)
+                .current_dir(repo.path())
+                .env("HOME", home.path())
+                .env("PATH", "/usr/bin:/bin")
+                .output()
+                .unwrap()
+        };
+
+        let start = run("session-start");
+        assert!(start.status.success());
+        assert_eq!(
+            String::from_utf8_lossy(&start.stdout).trim(),
+            MISSING_BINARY
+        );
+        let post = run("post-tool-use");
+        assert!(post.status.success());
+        assert!(post.stdout.is_empty());
+
+        let bin = home.path().join(".local").join("bin");
+        fs::create_dir_all(&bin).unwrap();
+        let witness = bin.join("witness");
+        fs::write(&witness, "#!/bin/sh\necho \"$@\"\nexit 3\n").unwrap();
+        fs::set_permissions(&witness, fs::Permissions::from_mode(0o755)).unwrap();
+        let stop = run("stop");
+        assert!(stop.status.success());
+        assert_eq!(
+            String::from_utf8_lossy(&stop.stdout).trim(),
+            "hook --agent claude-code stop"
         );
     }
 

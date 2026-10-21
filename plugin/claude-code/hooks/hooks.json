@@ -4,7 +4,7 @@
       {
         "hooks": [
           {
-            "command": "W=$(command -v witness || echo \"$HOME/.local/bin/witness\"); [ -x \"$W\" ] || W=\"$HOME/.cargo/bin/witness\"; [ -x \"$W\" ] || exit 0; \"$W\" hook --agent claude-code post-tool-use || true",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/witness.sh\" post-tool-use",
             "timeout": 10,
             "type": "command"
           }
@@ -16,7 +16,7 @@
       {
         "hooks": [
           {
-            "command": "W=$(command -v witness || echo \"$HOME/.local/bin/witness\"); [ -x \"$W\" ] || W=\"$HOME/.cargo/bin/witness\"; [ -x \"$W\" ] || exit 0; \"$W\" hook --agent claude-code post-tool-use-failure || true",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/witness.sh\" post-tool-use-failure",
             "timeout": 10,
             "type": "command"
           }
@@ -28,7 +28,7 @@
       {
         "hooks": [
           {
-            "command": "W=$(command -v witness || echo \"$HOME/.local/bin/witness\"); [ -x \"$W\" ] || W=\"$HOME/.cargo/bin/witness\"; [ -x \"$W\" ] || exit 0; \"$W\" hook --agent claude-code pre-tool-use || true",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/witness.sh\" pre-tool-use",
             "timeout": 10,
             "type": "command"
           }
@@ -40,7 +40,7 @@
       {
         "hooks": [
           {
-            "command": "W=$(command -v witness || echo \"$HOME/.local/bin/witness\"); [ -x \"$W\" ] || W=\"$HOME/.cargo/bin/witness\"; [ -x \"$W\" ] || exit 0; \"$W\" hook --agent claude-code session-end || true",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/witness.sh\" session-end",
             "timeout": 10,
             "type": "command"
           }
@@ -51,7 +51,7 @@
       {
         "hooks": [
           {
-            "command": "W=$(command -v witness || echo \"$HOME/.local/bin/witness\"); [ -x \"$W\" ] || W=\"$HOME/.cargo/bin/witness\"; [ -x \"$W\" ] || { [ -d .witness ] && echo '{\"systemMessage\":\"Witness: the witness binary is not installed, so this session is not recorded. Install it: curl -fsSL https://raw.githubusercontent.com/radical-studios/witness/main/install.sh | sh\"}'; exit 0; }; \"$W\" hook --agent claude-code session-start || true",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/witness.sh\" session-start",
             "timeout": 10,
             "type": "command"
           }
@@ -62,7 +62,7 @@
       {
         "hooks": [
           {
-            "command": "W=$(command -v witness || echo \"$HOME/.local/bin/witness\"); [ -x \"$W\" ] || W=\"$HOME/.cargo/bin/witness\"; [ -x \"$W\" ] || exit 0; \"$W\" hook --agent claude-code stop || true",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/witness.sh\" stop",
             "timeout": 30,
             "type": "command"
           }
@@ -73,7 +73,7 @@
       {
         "hooks": [
           {
-            "command": "W=$(command -v witness || echo \"$HOME/.local/bin/witness\"); [ -x \"$W\" ] || W=\"$HOME/.cargo/bin/witness\"; [ -x \"$W\" ] || exit 0; \"$W\" hook --agent claude-code user-prompt-submit || true",
+            "command": "sh \"${CLAUDE_PLUGIN_ROOT}/hooks/witness.sh\" user-prompt-submit",
             "timeout": 10,
             "type": "command"
           }

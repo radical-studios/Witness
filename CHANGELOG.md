@@ -4,6 +4,12 @@ All notable changes to Witness. Versions follow [Semantic
 Versioning](https://semver.org); before 1.0, minor versions may change
 behavior and the report format.
 
+## Unreleased
+
+- The Claude Code plugin's hooks run `hooks/witness.sh`, so their commands
+  meet Anthropic's plugin directory rules. The plugin has its own README and
+  an icon.
+
 ## 0.2.0 (2026-10-21)
 
 A rebuild of the 0.1 prototype into an agent-agnostic tool. Session logs

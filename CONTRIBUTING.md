@@ -44,8 +44,8 @@ cargo deny check            # licenses and advisories (cargo install cargo-deny)
 - `crates/witness`: the CLI. Hooks, snapshots, the report pipeline,
   installers, `doctor`, `prune`, the history builder.
 - `plugin/claude-code`: the Claude Code plugin. Its `hooks/hooks.json`
-  must equal `witness hooks install claude-code`'s output; a test checks
-  it.
+  hooks the same events as `witness hooks install claude-code`, through
+  `hooks/witness.sh`; tests check both.
 - `docs/`: user and design documentation.
 
 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) explains how the pieces fit.
